@@ -1,0 +1,23 @@
+{
+  "name": "bitmap2font",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "python3 serve.py",
+    "test": "node test/test.js && node test/test-color.js && node test/test-bmfont.js && node test/test-import.js && node test/test-outline.js",
+    "zip": "rm -f bitmap2font-itch.zip && cd dist && zip -qr ../bitmap2font-itch.zip . -x \".*\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fonteditor-core": "^2.6.3",
+    "opentype.js": "^2.0.0",
+    "tippy.js": "^6.3.7"
+  },
+  "devDependencies": {
+    "parse-bmfont-ascii": "^1.0.6",
+    "pngjs": "^7.0.0"
+  }
+}

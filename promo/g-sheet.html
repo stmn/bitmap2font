@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  width: 900px; height: 650px; background: #14161a;
+  font-family: ui-monospace, Menlo, monospace; color: #e8eaed;
+  padding: 0; display: flex; flex-direction: column; gap: 18px;
+}
+h1 { padding-top: 6px; font: 15px 'Press Start 2P'; color: #f0b429; -webkit-font-smoothing: none; margin-bottom: 6px; }
+.row { display: flex; gap: 26px; align-items: flex-start; }
+.sheet-wrap { position: relative; width: 512px; height: 192px; flex: none; }
+.sheet-wrap img { width: 512px; height: 192px; image-rendering: pixelated; display: block; }
+.sheet-wrap svg { position: absolute; inset: 0; }
+.notes { display: flex; flex-direction: column; gap: 13px; font-size: 13.5px; line-height: 1.45; color: #b9c2cc; }
+.notes b { color: #f0b429; font-weight: 600; }
+.n { display: flex; gap: 9px; }
+.dot { color: #f0b429; font-weight: 700; flex: none; }
+.bottom { display: flex; gap: 26px; align-items: center; background: #1d2026; border-radius: 8px; padding: 16px 20px; }
+.cellzoom { position: relative; flex: none; }
+.cellzoom canvas { image-rendering: pixelated; display: block; }
+.bl-label { font-size: 12.5px; color: #b9c2cc; line-height: 1.5; }
+.bl-label b { color: #f0b429; }
+</style>
+</head>
+<body>
+  <h1>HOW TO PREPARE YOUR SHEET</h1>
+  <div class="row">
+    <div class="sheet-wrap">
+      <img src="http://localhost:8741/example.png">
+      <svg viewBox="0 0 512 192">
+        <g stroke="rgba(240,180,41,0.55)" stroke-width="1">
+          <path d="M32 0V192M64 0V192M96 0V192M128 0V192M160 0V192M192 0V192M224 0V192M256 0V192M288 0V192M320 0V192M352 0V192M384 0V192M416 0V192M448 0V192M480 0V192"/>
+          <path d="M0 32H512M0 64H512M0 96H512M0 128H512M0 160H512"/>
+        </g>
+        <rect x="0" y="0" width="512" height="192" fill="none" stroke="#f0b429" stroke-width="2"/>
+      </svg>
+    </div>
+    <div class="notes">
+      <div class="n"><span class="dot">1</span><span><b>Equal cells in a grid</b> - one glyph per cell, no padding needed. Set columns x rows (or exact cell size) in the tool.</span></div>
+      <div class="n"><span class="dot">2</span><span><b>Character order</b> - left to right, top to bottom. Default is ASCII 32-126, starting with space.</span></div>
+      <div class="n"><span class="dot">3</span><span><b>Background</b> - transparent (alpha) or solid; ink vs background is detected automatically.</span></div>
+      <div class="n"><span class="dot">4</span><span><b>Antialiasing / colors?</b> Keep them - the Color font mode bakes them into the TTF.</span></div>
+    </div>
+  </div>
+  <div class="bottom">
+    <div class="cellzoom">
+      <canvas id="cz" width="126" height="180"></canvas>
+    </div>
+    <div class="bl-label">
+      <b>Baseline</b> = pixels from the cell bottom that hang below the text line.<br>
+      Descenders of <b>g j p q y</b> live in that strip -<br>
+      the tail of "g" dips below the amber line (here: cell 14x20, baseline 4).<br>
+      Baseline 0 = glyphs sit on the cell bottom.
+    </div>
+  </div>
+<script>
+// zoom komorki: litera "g" z example.png (kolumna 7, wiersz 5) + linia baseline
+const img = new Image();
+img.onload = () => {
+  const ctx = document.getElementById('cz').getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  // 'g' = kod 103; index 71; kolumna 7, wiersz 4; komorka 14x20, skala 9
+  ctx.drawImage(img, 7*14, 4*20, 14, 20, 0, 0, 126, 180);
+  ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+  for (let i = 1; i < 14; i++) { ctx.beginPath(); ctx.moveTo(i*9, 0); ctx.lineTo(i*9, 180); ctx.stroke(); }
+  for (let i = 1; i < 20; i++) { ctx.beginPath(); ctx.moveTo(0, i*9); ctx.lineTo(126, i*9); ctx.stroke(); }
+  // baseline: 4 px od dolu = y = 16*9
+  ctx.strokeStyle = '#f0b429';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(0, 16*9); ctx.lineTo(126, 16*9); ctx.stroke();
+  document.title = 'DONE';
+};
+img.src = 'http://localhost:8745/rainbow-sheet.png';
+</script>
+</body>
+</html>

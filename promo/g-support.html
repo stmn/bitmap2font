@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  width: 900px; height: 360px; background: #14161a;
+  font-family: ui-monospace, Menlo, monospace; color: #e8eaed;
+  padding: 0;
+}
+h1 { padding-top: 6px; font: 15px 'Press Start 2P'; color: #f0b429; -webkit-font-smoothing: none; margin-bottom: 8px; }
+.sub { font-size: 12.5px; color: #8b919c; margin-bottom: 22px; }
+.cols { display: flex; gap: 20px; }
+.col { flex: 1; background: #1d2026; border-radius: 10px; padding: 18px 22px; }
+.col h2 { font-size: 13.5px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.ok h2 { color: #4fd08a; }
+.fb h2 { color: #f0b429; }
+.col ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.col li { font-size: 13px; color: #b9c2cc; display: flex; gap: 9px; align-items: center; }
+.col li::before { content: ''; width: 5px; height: 5px; background: currentColor; flex: none; }
+.foot { margin-top: 18px; font-size: 12px; color: #8b919c; }
+.foot b { color: #e8eaed; }
+</style>
+</head>
+<body>
+  <h1>COLOR FONT MODE - WHERE IT RENDERS</h1>
+  <div class="sub">Glyphs embedded as PNG bitmaps (CBDT + sbix tables) alongside regular vector outlines.</div>
+  <div class="cols">
+    <div class="col ok">
+      <h2>COLOR GLYPHS (baked AA + colors)</h2>
+      <ul>
+        <li>Chrome / Edge / Opera</li>
+        <li>Safari and macOS (Font Book, TextEdit...)</li>
+        <li>Godot and anything on FreeType</li>
+        <li>Windows (DirectWrite apps)</li>
+      </ul>
+    </div>
+    <div class="col fb">
+      <h2>OUTLINE FALLBACK (plain vector shapes)</h2>
+      <ul>
+        <li>Firefox (reads only COLR format)</li>
+        <li>Unity TextMeshPro</li>
+        <li>stb_truetype-based engines</li>
+        <li>older design apps</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot"><b>The file always contains both.</b> Renderers that do not understand color glyphs automatically use the vector fallback - text stays readable everywhere.</div>
+</body>
+</html>

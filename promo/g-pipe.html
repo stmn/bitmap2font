@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  width: 900px; height: 300px; background: #14161a;
+  font-family: ui-monospace, Menlo, monospace; color: #e8eaed;
+  padding: 0;
+}
+h1 { padding-top: 6px; font: 15px 'Press Start 2P'; color: #f0b429; -webkit-font-smoothing: none; margin-bottom: 26px; }
+.flow { display: flex; align-items: center; gap: 14px; }
+.step {
+  background: #1d2026; border-radius: 10px; padding: 18px 16px 14px;
+  flex: 1; height: 168px; display: flex; flex-direction: column;
+  align-items: center; gap: 10px; text-align: center;
+}
+.step .icon { flex: none; width: 54px; height: 54px; stroke: #f0b429; stroke-width: 1.6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.step b { font-size: 13.5px; color: #e8eaed; }
+.step span { font-size: 11.5px; color: #8b919c; line-height: 1.45; }
+.arr { font: 16px 'Press Start 2P'; color: #f0b429; -webkit-font-smoothing: none; flex: none; }
+</style>
+</head>
+<body>
+  <h1>HOW IT WORKS</h1>
+  <div class="flow">
+    <div class="step">
+      <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+      <b>1. Drop a PNG</b>
+      <span>glyph sheet, any size, transparent or solid background</span>
+    </div>
+    <div class="arr">&gt;</div>
+    <div class="step">
+      <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+      <b>2. Slice the grid</b>
+      <span>columns x rows, offsets and gaps, with live overlay</span>
+    </div>
+    <div class="arr">&gt;</div>
+    <div class="step">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg>
+      <b>3. Trace + bake</b>
+      <span>vector outlines + optional embedded pixels (AA, colors)</span>
+    </div>
+    <div class="arr">&gt;</div>
+    <div class="step">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <b>4. Download</b>
+      <span>working TTF / OTF, ready for games, engines and editors</span>
+    </div>
+  </div>
+</body>
+</html>

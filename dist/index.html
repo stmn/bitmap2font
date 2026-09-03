@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bitmap2font</title>
+<link rel="stylesheet" href="vendor/tooltip.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="layout">
+  <section class="stage">
+    <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Load a bitmap image">
+      <svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <p class="dz-title">Drop a PNG here</p>
+      <p class="dz-sub">or click to browse - a PNG glyph sheet, or a BDF / FNT / FON bitmap font</p>
+      <div class="dz-links">
+        <button id="loadExample" class="linklike" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+          try the example sheet
+        </button>
+        <span class="dz-sep" aria-hidden="true"></span>
+        <button id="loadLast" class="linklike" type="button" hidden>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+          load last session
+        </button>
+      </div>
+      <input id="fileInput" type="file" accept="image/*,.bdf,.fnt,.fon" hidden>
+    </div>
+    <section id="introHelp" class="intro-help">
+      <div class="ih-col">
+        <h3>How it works</h3>
+        <ol>
+          <li>Drop a PNG sheet with glyphs in a grid - or a ready BDF / FNT / FON font</li>
+          <li>Set columns x rows (auto-detected for most sheets)</li>
+          <li>Type the characters in sheet order - left to right, top to bottom</li>
+          <li>Download TTF, OTF or BMFont (.fnt + atlas)</li>
+        </ol>
+      </div>
+      <div class="ih-col">
+        <h3>FAQ</h3>
+        <p><b>What should the sheet look like?</b> Equal cells, one glyph each, transparent or solid background - ink is detected automatically.</p>
+        <p><b>What is Baseline?</b> Pixels from the cell bottom reserved for descenders (g, j, p, q, y). 0 = glyphs sit on the cell bottom.</p>
+        <p><b>My sheet has antialiasing or colors.</b> Keep them - Color font mode bakes them into the TTF (enabled automatically when detected).</p>
+        <p><b>Can I set a fallback (tofu) glyph?</b> Yes - draw it in the sheet, give it any character in the list (e.g. �) and type that character in Fallback glyph. Engines using a single font show it for missing characters; browsers usually fall back to a system font instead.</p>
+        <p><b>Color font looks wrong in my app?</b> Rendering differs between apps. Try unchecking Outline fallback, raising Bake scale, or enabling COLR layers.</p>
+      </div>
+    </section>
+
+    <div id="canvasWrap" class="canvas-wrap" hidden>
+      <canvas id="canvas"></canvas>
+    </div>
+    <p id="imgInfo" class="stage-info" hidden></p>
+
+    <div id="previewBlock" class="preview-block" hidden>
+      <h2 class="section-title">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+        Preview
+      </h2>
+      <div class="preview-wrap">
+        <div id="previewText" class="preview-text" contenteditable="true" spellcheck="false">The quick brown fox jumps over the lazy dog 0123456789</div>
+        <div id="previewBitmap" class="preview-text preview-bitmap" hidden><canvas id="previewCanvas"></canvas></div>
+        <div id="baselineGuide" class="baseline-guide" hidden></div>
+      </div>
+      <div class="preview-controls">
+        <label class="preview-size">
+          <span class="lbl">Size <b id="sizeVal">32</b> px</span>
+          <input id="previewSize" type="range" min="8" max="96" step="1" value="32">
+        </label>
+        <label class="check"><input id="showBaseline" type="checkbox">Baseline guide</label>
+        <label class="check" id="bmpPrevWrap" hidden><input id="bmpPreview" type="checkbox">Embedded bitmaps
+          <button class="info-btn" type="button" data-tip="Draws the preview text straight from the pixel data embedded in the TTF - shows baked antialiasing and colors even in browsers that cannot render color fonts. Rendered at integer zoom of the cell height for crisp pixels. Text editing works in the normal preview mode.">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          </button>
+        </label>
+      </div>
+      <p id="previewNote" class="preview-note" hidden>
+        <svg class="icon" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 20h16a2 2 0 0 0 1.73-2Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        <span id="previewNoteText">This browser previews the outline fallback - the TTF still contains color glyphs (Chrome, Godot and macOS render them).</span>
+      </p>
+    </div>
+  </section>
+
+  <aside class="sidebar">
+    <details class="panel" open>
+      <summary class="section-title">
+        <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+        Grid
+        <svg class="icon chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+      </summary>
+      <div class="panel-body">
+      <div class="seg">
+        <button id="modeCount" class="seg-btn active" type="button">Columns x rows</button>
+        <button id="modeSize" class="seg-btn" type="button">Cell size</button>
+      </div>
+      <div class="fields" id="fieldsCount">
+        <label>Columns<input id="gridCols" type="number" min="1" value="16"></label>
+        <label>Rows<input id="gridRows" type="number" min="1" value="6"></label>
+      </div>
+      <div class="fields" id="fieldsSize" hidden>
+        <label>Cell width<input id="cellW" type="number" min="1" value="8"></label>
+        <label>Cell height<input id="cellH" type="number" min="1" value="8"></label>
+      </div>
+      <div class="fields">
+        <label>Offset X<input id="offsetX" type="number" min="0" value="0"></label>
+        <label>Offset Y<input id="offsetY" type="number" min="0" value="0"></label>
+        <label>Gap X<input id="spacingX" type="number" min="0" value="0"></label>
+        <label>Gap Y<input id="spacingY" type="number" min="0" value="0"></label>
+      </div>
+      </div>
+    </details>
+
+    <details class="panel" open>
+      <summary class="section-title">
+        <svg class="icon" viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+        Characters
+        <button class="info-btn" type="button" data-tip="Type the characters in the order they appear in the grid: left to right, top to bottom. Extra characters beyond the number of cells are skipped.">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        </button>
+        <svg class="icon chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+      </summary>
+      <div class="panel-body">
+      <textarea id="chars" rows="4" spellcheck="false"></textarea>
+      <div class="fields">
+        <label class="wide"><span class="lbl-row">Fallback glyph (.notdef)
+          <button class="info-btn" type="button" data-tip="A character from the list above whose glyph is also stored as the font's .notdef - the 'tofu' box shown for any character the font does not have. Draw the tofu in the sheet, assign it any character (e.g. �), then type that character here. Game engines and apps that use a single font show it for missing characters; browsers usually substitute a system font instead. The Embedded bitmaps preview draws it for every missing character.">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          </button></span>
+          <input id="notdefChar" type="text" maxlength="2" placeholder="none - e.g. �"></label>
+      </div>
+      </div>
+    </details>
+
+    <details class="panel">
+      <summary class="section-title">
+        <svg class="icon" viewBox="0 0 24 24"><line x1="21" y1="4" x2="14" y2="4"/><line x1="10" y1="4" x2="3" y2="4"/><line x1="21" y1="12" x2="12" y2="12"/><line x1="8" y1="12" x2="3" y2="12"/><line x1="21" y1="20" x2="16" y2="20"/><line x1="12" y1="20" x2="3" y2="20"/><line x1="14" y1="2" x2="14" y2="6"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="16" y1="18" x2="16" y2="22"/></svg>
+        Font
+        <svg class="icon chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+      </summary>
+      <div class="panel-body">
+      <div class="fields">
+        <label class="wide">Font name<input id="fontName" type="text" value="Bitmap Font"></label>
+        <label><span class="lbl-row">Baseline
+          <button class="info-btn" type="button" data-tip="Pixels from the cell bottom that hang below the text line (descenders of g, j, p, q, y).">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          </button></span>
+          <input id="baseline" type="number" min="0" value="0"></label>
+        <label><span class="lbl-row">Threshold
+          <button class="info-btn" type="button" data-tip="Alpha or brightness cutoff (1-255) for a pixel to count as ink when tracing outlines.">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          </button></span>
+          <input id="threshold" type="number" min="1" max="255" value="128"></label>
+        <label>Letter gap<input id="letterSpacing" type="number" min="0" value="1"></label>
+        <label>Space width<input id="spaceWidth" type="number" min="1" value="4"></label>
+      </div>
+      <label class="check"><input id="mono" type="checkbox">Monospace
+        <button class="info-btn" type="button" data-tip="Every glyph keeps the full cell width. When off, glyphs are trimmed to their pixels and spaced by the letter gap (proportional).">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        </button>
+      </label>
+      <label class="check"><input id="colorFont" type="checkbox">Color font - bake AA + colors
+        <button class="info-btn" type="button" data-tip="Stores each glyph as a PNG inside the TTF (CBDT + sbix tables), so antialiased edges and colors survive exactly. Works in browsers, FreeType, Godot, Windows and macOS; engines without color-font support (e.g. Unity TMP) show the plain outline fallback. Colors are baked in - the font ignores text color.">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        </button>
+      </label>
+      <label class="check" id="outlineWrap" hidden><input id="outlineFallback" type="checkbox" checked>Outline fallback
+        <button class="info-btn" type="button" data-tip="Color font only. Checked: color glyphs keep real vector outlines, so renderers without color support still show readable shapes - but some apps may misplace color glyphs. Unchecked: outlines are left empty like in emoji fonts - color positioning works in more apps, but non-color renderers show nothing. If glyphs look scattered in your app, try unchecking this.">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        </button>
+      </label>
+      <label class="check" id="colrWrap" hidden><input id="colrTable" type="checkbox">COLR layers
+        <button class="info-btn" type="button" data-tip="Color font only. Also embeds vector color layers (COLR/CPAL) - infinitely sharp at any size and supported by Firefox, Windows and DTP apps. Colors are quantized to a palette, so smooth gradients may posterize slightly. Adds file size.">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        </button>
+      </label>
+      <label class="check" id="bakeWrap" hidden>Bake scale
+        <select id="bakeScale">
+          <option value="1" selected>1x</option>
+          <option value="2">2x</option>
+          <option value="4">4x</option>
+        </select>
+        <button class="info-btn" type="button" data-tip="Color font only. Embeds glyph bitmaps upscaled with crisp nearest-neighbor pixels, so apps that smooth-scale bitmaps at larger text sizes stay sharp up to that multiple. Increases file size.">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        </button>
+      </label>
+      </div>
+    </details>
+
+    <details class="panel" open>
+      <summary class="section-title">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
+        <svg class="icon chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+      </summary>
+      <div class="panel-body">
+      <p id="status" class="status"></p>
+      <div class="actions">
+        <button id="dlOtf" class="btn primary" disabled>Download OTF</button>
+        <button id="dlTtf" class="btn primary" disabled>Download TTF</button>
+        <button id="dlBmf" class="btn primary wide" disabled>Download BMFont
+          <span class="info-btn" data-tip="AngelCode .fnt + PNG atlas in a zip - for Phaser, LibGDX, HaxeFlixel, MonoGame and Unity TMP converters. Glyphs keep original pixels (AA + colors).">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          </span>
+        </button>
+      </div>
+      </div>
+    </details>
+  </aside>
+</main>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="vendor/vendor.js"></script>
+<script src="vendor/tooltip.js"></script>
+<script src="core.js"></script>
+<script src="colorfont.js"></script>
+<script src="bmfont.js"></script>
+<script src="importers.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

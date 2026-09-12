@@ -1,4 +1,4 @@
-# bitmap2font
+# Bitmap To Font Converter
 
 **[Try it in your browser on itch.io](https://stmn.itch.io/bitmap2font)**
 
